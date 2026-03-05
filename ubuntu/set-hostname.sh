@@ -7,12 +7,32 @@ usage() {
 }
 
 if [[ ${1-} == "" ]]; then
-  usage
-  exit 1
-fi
+  if [[ ! -t 0 ]]; then
+    usage
+    exit 1
+  fi
 
-hostname="$1"
-fqdn="${2-$hostname}"
+  echo "Tento skript na Ubuntu nastaví hostname a runtime kernel.hostname." >&2
+  echo "Co udělá:" >&2
+  echo "- Nainstaluje balíček libnss-myhostname" >&2
+  echo "- Nastaví trvalý hostname přes hostnamectl" >&2
+  echo "- Nastaví runtime kernel.hostname přes sysctl" >&2
+  echo "" >&2
+
+  read -r -p "Zadej hostname (např. myhost): " hostname
+  if [[ -z "$hostname" ]]; then
+    echo "Hostname je povinný." >&2
+    exit 1
+  fi
+
+  read -r -p "Zadej FQDN (volitelné, Enter = použít hostname): " fqdn
+  if [[ -z "$fqdn" ]]; then
+    fqdn="$hostname"
+  fi
+else
+  hostname="$1"
+  fqdn="${2-$hostname}"
+fi
 
 if [[ -f /etc/os-release ]]; then
   . /etc/os-release
